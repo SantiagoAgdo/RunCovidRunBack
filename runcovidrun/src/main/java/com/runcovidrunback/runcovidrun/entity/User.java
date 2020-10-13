@@ -4,7 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.util.Calendar;
 
 @Entity
 public class User {
@@ -13,14 +12,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
+    private String pass;
     private Float score;
     private String dateCreation;
 
     public User() {
     }
 
-    public User(String name, Float score, String dateCreation) {
+    public User(String name, String pass, Float score, String dateCreation) {
+        this.id = id;
         this.name = name;
+        this.pass = pass;
         this.score = score;
         this.dateCreation = dateCreation;
     }
@@ -35,6 +37,14 @@ public class User {
 
     public String getName() {
         return name;
+    }
+
+    public String getPass() {
+        return pass;
+    }
+
+    public void setPass(String pass) {
+        this.pass = pass;
     }
 
     public void setName(String name) {

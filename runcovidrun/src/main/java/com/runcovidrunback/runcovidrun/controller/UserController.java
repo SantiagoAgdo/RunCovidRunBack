@@ -45,9 +45,36 @@ public class UserController {
         if (userService.existsByName(userDto.getName())){
             return new ResponseEntity(new ResponseDto("Este nombre ya existe!"), HttpStatus.CONFLICT);
         }
-        User  user = new User(userDto.getName(), userDto.getScore(), userDto.getDateCreation());
+        if (userDto.getPass() == null  ){
+            return  new ResponseEntity(new ResponseDto("Es necesario una contrasena"), HttpStatus.BAD_REQUEST);
+        }
+        if (userDto.getPass().length() < 4){
+            return  new ResponseEntity(new ResponseDto("La contrasena debe ser mayor a o igual a 4 digitos"), HttpStatus.BAD_REQUEST);
+        }
+        User  user = new User(userDto.getName(), userDto.getPass() ,userDto.getScore(), userDto.getDateCreation());
         userService.save(user);
         return new ResponseEntity(new ResponseDto("Usuario Creado"), HttpStatus.OK);
+    }
+
+    @PostMapping("/checkUser")
+    public ResponseEntity<?> checkUser(@RequestBody User userDto){
+        if (StringUtils.isBlank(userDto.getName())){
+            return new ResponseEntity(new ResponseDto("Nombre no obtenido"), HttpStatus.NOT_FOUND);
+        }
+        if (userDto.getPass() == null || userDto.getPass().length() < 4 ){
+            return  new ResponseEntity(new ResponseDto("Contrasena no obtenida"), HttpStatus.NOT_FOUND);
+        }
+
+        boolean userExists = userService.existsByName(userDto.getName());
+        boolean passIsValid = userService.passIsValid(userDto.getPass());
+
+        if( !userExists  ){
+            return  new ResponseEntity(new ResponseDto("Usuario y/o contrasena invalida"), HttpStatus.NOT_FOUND);
+        }
+        if( !passIsValid){
+            return  new ResponseEntity(new ResponseDto("Usuario y/o contrasena invalida 2"), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity( new ResponseDto("Usuario Valido"), HttpStatus.OK);
     }
 
     @PutMapping("/updateuser/{id}")
@@ -61,10 +88,14 @@ public class UserController {
         if (StringUtils.isBlank(userDto.getName())){
             return  new ResponseEntity(new ResponseDto("El nombre es obligatorio"), HttpStatus.NOT_FOUND);
         }
+        if (StringUtils.isBlank(userDto.getPass()) || userDto.getPass().length() < 4 ) {
+            return  new ResponseEntity(new ResponseDto("Contrasena no es valida"), HttpStatus.BAD_REQUEST);
+        }
         User user = userService.getOne(id).get();
         user.setName(userDto.getName());
         user.setDateCreation(userDto.getDateCreation());
         user.setScore(userDto.getScore());
+        user.setPass(userDto.getPass());
         userService.save(user);
         return new ResponseEntity(new ResponseDto("Usuario Actualizado"), HttpStatus.OK);
     }

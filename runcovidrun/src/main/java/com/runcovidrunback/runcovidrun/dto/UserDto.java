@@ -5,14 +5,16 @@ import java.util.Calendar;
 public class UserDto {
 
     private String name;
+    private String pass;
     private Float score;
     private String dateCreation;
 
     public UserDto() {
     }
 
-    public UserDto(String name, Float score, String dateCreation) {
+    public UserDto(String name, String pass, Float score, String dateCreation) {
         this.name = name;
+        this.pass = pass;
         this.score = score;
         this.dateCreation = dateCreation;
     }
@@ -23,6 +25,14 @@ public class UserDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPass() {
+        return pass;
+    }
+
+    public void setPass(String pass) {
+        this.pass = pass;
     }
 
     public Float getScore() {
