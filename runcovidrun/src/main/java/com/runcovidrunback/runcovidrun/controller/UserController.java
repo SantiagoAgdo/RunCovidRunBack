@@ -1,9 +1,12 @@
 package com.runcovidrunback.runcovidrun.controller;
 
 
+import com.runcovidrunback.runcovidrun.Encry.encri;
 import com.runcovidrunback.runcovidrun.dto.UserDto;
 import com.runcovidrunback.runcovidrun.dto.ResponseDto;
+import com.runcovidrunback.runcovidrun.entity.GetData;
 import com.runcovidrunback.runcovidrun.entity.User;
+import com.runcovidrunback.runcovidrun.services.DataService;
 import com.runcovidrunback.runcovidrun.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,9 +15,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 ;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
 
 @RestController
 @RequestMapping("/user")
@@ -24,14 +37,30 @@ public class UserController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    DataService dataService;
+
+    public static encri encryp = new encri();
+
     @GetMapping("/list")
     public ResponseEntity<List<User>> list(){
         List<User> list = userService.listaUsers();
         return  new ResponseEntity(list, HttpStatus.OK);
     }
 
+    @GetMapping("/data")
+    public ResponseEntity<List<GetData>> listData(){
+        List<GetData> listData = dataService.data();
+        System.out.println("=================");
+        for (int i = 0; i <listData.size() ; i++) {
+            System.out.println(listData);
+        }
+        return  new ResponseEntity(listData, HttpStatus.OK);
+    }
+
     @PostMapping("/createuser")
     public ResponseEntity<?> create(@RequestBody UserDto userDto){
+        String encriptado = "";
         if (StringUtils.isBlank(userDto.getName())){
             return new ResponseEntity(new ResponseDto("El Nombre Es Obligatorio"), HttpStatus.BAD_REQUEST);
         }
@@ -51,22 +80,42 @@ public class UserController {
         if (userDto.getPass().length() < 4){
             return  new ResponseEntity(new ResponseDto("La contrasena debe ser mayor a o igual a 4 digitos"), HttpStatus.BAD_REQUEST);
         }
-        User  user = new User(userDto.getName(), userDto.getPass() ,userDto.getScore(), userDto.getDateCreation());
+
+        try {
+             encriptado = encryp.encriptar(userDto.getPass(), "covidrun");
+
+
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException ex) {
+            Logger.getLogger(encri.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        User  user = new User(userDto.getName(), encriptado ,userDto.getScore(), userDto.getDateCreation());
         userService.save(user);
         return new ResponseEntity(new ResponseDto("Usuario Creado"), HttpStatus.OK);
     }
 
     @PostMapping("/checkUser")
     public ResponseEntity<?> checkUser(@RequestBody User userDto){
+        String desencripty = "";
         if (StringUtils.isBlank(userDto.getName())){
             return new ResponseEntity(new ResponseDto("Nombre no obtenido"), HttpStatus.NOT_FOUND);
         }
+        String SecretPass = "covidrun";
         if (userDto.getPass() == null || userDto.getPass().length() < 4 ){
             return  new ResponseEntity(new ResponseDto("Contrasena no obtenida"), HttpStatus.NOT_FOUND);
         }
+        try {
+            String encriptado = encryp.encriptar(userDto.getPass(), SecretPass);
+            desencripty = encryp.desencriptar(encriptado, SecretPass);
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException ex) {
+            Logger.getLogger(encri.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (desencripty == null || desencripty.length() < 2  ){
+            return  new ResponseEntity(new ResponseDto("Descriptacion fallida"), HttpStatus.CONFLICT);
+        }
 
         boolean userExists = userService.existsByName(userDto.getName());
-        boolean passIsValid = userService.passIsValid(userDto.getPass());
+        boolean passIsValid = userService.passIsValid(desencripty);
 
         if( !userExists  ){
             return  new ResponseEntity(new ResponseDto("Usuario y/o contrasena invalida"), HttpStatus.NOT_FOUND);

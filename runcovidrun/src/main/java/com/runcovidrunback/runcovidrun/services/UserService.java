@@ -1,6 +1,7 @@
 package com.runcovidrunback.runcovidrun.services;
 
 import com.runcovidrunback.runcovidrun.entity.User;
+import com.runcovidrunback.runcovidrun.repository.GetDataRepository;
 import com.runcovidrunback.runcovidrun.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ public class UserService {
 
     @Autowired
     UserRepository userRepository;
+
 
     public List<User> listaUsers() {
         return userRepository.findAll();

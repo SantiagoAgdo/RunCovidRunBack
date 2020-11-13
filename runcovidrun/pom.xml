@@ -70,6 +70,12 @@
 			<artifactId>spring-jdbc</artifactId>
 			<version>5.2.9.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations</artifactId>
+			<version>RELEASE</version>
+			<scope>compile</scope>
+		</dependency>
 
 	</dependencies>
 
